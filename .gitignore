@@ -1,0 +1,4 @@
+session_name.session
+telegram_bot.log
+__pycache__
+telegram.db
