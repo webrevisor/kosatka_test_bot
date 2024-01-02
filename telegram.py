@@ -224,6 +224,7 @@ class TelegramChannelSync:
         while True:
             # Получаем событие из очереди
             event = await new_message_queue.get()
+            logger.info('GETING EVENT!!!!!!')
 
             try:
                 # Выполнение запроса на выборку данных из таблицы
@@ -295,6 +296,7 @@ class TelegramChannelSync:
     async def _new_message_handler(self, event):
         logger.info('NEW MESSAGE HANDLER!!!!')
         new_message_queue = self.new_message_queues[event.chat_id]
+        logger.info('GETING QUEUE OF MESSAGES!!!!')
         await new_message_queue.put(event)
 
     async def _edit_message_handler(self, event):
