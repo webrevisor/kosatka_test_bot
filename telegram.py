@@ -266,13 +266,14 @@ class TelegramChannelSync:
 
                 # Выполнение запроса на выборку данных из таблицы
                 cursor.execute(f'SELECT * FROM last_messages WHERE channel_id = {event.chat_id}')
-                if cursor.fetchone() is None:
+                last_message_data = cursor.fetchone()
+                if last_message_data is None:
                     cursor.execute('''
                             INSERT OR REPLACE INTO last_messages (channel_id, message_id)
                             VALUES (?, ?)
                         ''', (event.chat_id, event.message.id))
                 else:
-                    channel_id, message_id = cursor.fetchone()
+                    channel_id, message_id = last_message_data
                     if message_id < event.message.id:
                         cursor.execute('''
                                 INSERT OR REPLACE INTO last_messages (channel_id, message_id)
