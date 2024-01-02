@@ -226,6 +226,15 @@ class TelegramChannelSync:
             event = await new_message_queue.get()
 
             try:
+                # Выполнение запроса на выборку данных из таблицы
+                cursor.execute(f'SELECT * FROM last_messages WHERE channel_id = {event.chat_id}')
+                last_message_data = cursor.fetchone()
+
+                if last_message_data is not None:
+                    channel_id, message_id = last_message_data
+                    if event.message.id <= message_id:
+                        return
+
                 file_path = await self._download_pdf(event)
 
                 for link in self.channel_links:
@@ -264,9 +273,6 @@ class TelegramChannelSync:
                 if file_path:
                     self._remove_pdf(file_path)
 
-                # Выполнение запроса на выборку данных из таблицы
-                cursor.execute(f'SELECT * FROM last_messages WHERE channel_id = {event.chat_id}')
-                last_message_data = cursor.fetchone()
                 if last_message_data is None:
                     cursor.execute('''
                             INSERT OR REPLACE INTO last_messages (channel_id, message_id)
