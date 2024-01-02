@@ -4,7 +4,7 @@ API_HASH = 'a1b36bee6eabbc1da8685f87e713c123'
 
 # Логирование
 LOG_FILE = 'telegram_bot.log'
-LOG_FORMAT = '[%(levelname)s %(asctime)s] %(message)s'
+LOG_FORMAT = '[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s'
 
 PDF_DPI = 230
 PDF_DOWNLOAD_DIRECTORY = 'downloads'

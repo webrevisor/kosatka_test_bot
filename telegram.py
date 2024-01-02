@@ -33,7 +33,7 @@ class TelegramChannelSync:
                 for task in tasks:
                     task.cancel()
         except Exception as e:
-            logger.error(f"Произошла ошибка: {e}")
+            logger.exception(f"Произошла ошибка: {e}")
 
     def _set_queues(self):
         tasks = []
@@ -115,7 +115,7 @@ class TelegramChannelSync:
                     break
 
             if file_name is None:
-                logger.error("Название файла не обнаружено")
+                logger.exception("Название файла не обнаружено")
                 return None
 
             file_path = str(await self.client.download_media(
@@ -126,7 +126,7 @@ class TelegramChannelSync:
             logger.info(f"Скачан PDF-файл: {file_path}")
             return file_path
         except Exception as e:
-            logger.error(f"Ошибка при скачивании PDF-файла: {e}")
+            logger.exception(f"Ошибка при скачивании PDF-файла: {e}")
 
     @staticmethod
     def _remove_pdf(file_path):
@@ -141,7 +141,7 @@ class TelegramChannelSync:
 
             logger.info(f"PDF-файл удален: {file_path}")
         except Exception as e:
-            logger.error(f"Ошибка при удалении PDF-файла: {e}")
+            logger.exception(f"Ошибка при удалении PDF-файла: {e}")
 
     @staticmethod
     async def _add_watermark_to_pdf(watermark_config, target, file_path):
@@ -161,7 +161,7 @@ class TelegramChannelSync:
             logger.info(f"На PDF-файл {file_path}, добавлена watermark-а: {watermark_config['path']}")
             return result
         except Exception as e:
-            logger.error(f"Ошибка при добавлении watermark-и: {e}")
+            logger.exception(f"Ошибка при добавлении watermark-и: {e}")
 
     @staticmethod
     def _emojis_replace(text, emoji_replacement):
@@ -170,7 +170,7 @@ class TelegramChannelSync:
                 text = text.replace(search_emoji, replacement)
             return text.strip()
         except Exception as e:
-            logger.error(f"Ошибка при изменении Emoji: {e}")
+            logger.exception(f"Ошибка при изменении Emoji: {e}")
 
     @staticmethod
     def _remove_text(text, remove_text, entities):
@@ -274,7 +274,7 @@ class TelegramChannelSync:
                         ''', (event.chat_id, event.message.id))
                 conn.commit()
             except Exception as e:
-                logger.error(f"Ошибка при пересылке сообщения: {e}")
+                logger.exception(f"Ошибка при пересылке сообщения: {e}")
             finally:
                 # Помечаем задачу как выполненную
                 new_message_queue.task_done()
@@ -298,7 +298,7 @@ class TelegramChannelSync:
                             logger.info(
                                 f"Сообщение [{event.message.id}] отредактировано в [{event.chat_id}] и обновлено в [{target}]")
         except Exception as e:
-            logger.error(f"Ошибка при редактировании сообщения: {e}")
+            logger.exception(f"Ошибка при редактировании сообщения: {e}")
 
     async def _delete_message_handler(self, event):
         try:
@@ -311,7 +311,7 @@ class TelegramChannelSync:
                                 await self.client.delete_messages(target, [target_msg_id])
                                 logger.info(f"Сообщение [{deleted_id}] из [{event.chat_id}] удалено в [{target}]")
         except Exception as e:
-            logger.error(f"Ошибка при удалении сообщения: {e}")
+            logger.exception(f"Ошибка при удалении сообщения: {e}")
 
     def _update_message_ids(self, source_chat_id, source_msg_id, target_chat_id, target_msg_id):
         self.message_ids[(source_chat_id, source_msg_id, target_chat_id)] = target_msg_id
