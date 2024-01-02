@@ -72,7 +72,7 @@ CHANNELS_LINKS = [
         'text_remove': DEFAULT_TEXTS_REMOVE,
         'send_missed_messages': {
             'enable': True,
-            'count': 3,
+            'count': 10,
         }
     },
 
