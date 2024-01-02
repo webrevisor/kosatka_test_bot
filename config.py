@@ -26,9 +26,23 @@ SECOND_CHANNELS_WATERMARK = {
 DEFAULT_TEXTS_REMOVE = '🧠 О чём занятие?'
 
 DEFAULT_EMOJIS_REPLACEMENT = {
-    '😂': '😄',
-    '😳': '😭',
-    '😊': '😏',
+    '🔗': '📚',
+    '🔭': '🚀',
+    '🇷🇺': '🍒',
+    '🏛': '📕',
+    '⚖️': '🍊',
+    '👨‍🎓': '✨',
+    '💻': '🖥',
+    '💿': '🥥',
+    '📝': '🖋',
+    '📖': '🗒',
+    '📄': '🪄',
+    '📐': '🪼',
+    '🧬': '🌿',
+    '🇬🇧': '🫕',
+    '📏': '🍇',
+    '🎭': '📚',
+    '🗣': '🌊',
 }
 
 # Список исходных каналов
@@ -47,114 +61,103 @@ CHANNELS_LINKS = [
             'count': 3,
         }
     },
-    # {
-    #     'source': [-1002140354840],
-    #     'target': [-1002101629483, -1001824470981],
-    #     'pdf_watermark': {
-    #         -1002101629483: FIRST_CHANNELS_WATERMARK,
-    #         -1001824470981: SECOND_CHANNELS_WATERMARK
-    #     },
-    #     'emojis_replacement': DEFAULT_EMOJIS_REPLACEMENT,
-    #     'text_remove': DEFAULT_TEXTS_REMOVE,
-    #     'send_missed_messages': {
-    #         'enable': True,
-    #         'count': 3,
-    #     }
-    # },
-    #
-    # {
-    #     'source': [-1002029276392],
-    #     'target': [-1002037268961, -1001990321789],
-    #     'pdf_watermark': {
-    #         -1002037268961: FIRST_CHANNELS_WATERMARK,
-    #         -1001990321789: SECOND_CHANNELS_WATERMARK
-    #     },
-    #     'emojis_replacement': DEFAULT_EMOJIS_REPLACEMENT,
-    #     'text_remove': DEFAULT_TEXTS_REMOVE,
-    #     'send_missed_messages': {
-    #         'enable': True,
-    #         'count': 10,
-    #     }
-    # },
-    #
-    #
-    #
-    # {
-    #     'source': [-1002015899398],
-    #     'target': [-1001990941015, -1002088504178],
-    #     'pdf_watermark': {
-    #         -1001990941015: FIRST_CHANNELS_WATERMARK,
-    #         -1002088504178: SECOND_CHANNELS_WATERMARK
-    #     },
-    #     'emojis_replacement': DEFAULT_EMOJIS_REPLACEMENT,
-    #     'text_remove': DEFAULT_TEXTS_REMOVE,
-    #     'send_missed_messages': {
-    #         'enable': True,
-    #         'count': 10,
-    #     }
-    # },
-    #
-    #
-    #
-    # {
-    #     'source': [-1002096262333],
-    #     'target': [-1002087010315, -1001938907223],
-    #     'pdf_watermark': {
-    #         -1002087010315: FIRST_CHANNELS_WATERMARK,
-    #         -1001938907223: SECOND_CHANNELS_WATERMARK
-    #     },
-    #     'emojis_replacement': DEFAULT_EMOJIS_REPLACEMENT,
-    #     'text_remove': DEFAULT_TEXTS_REMOVE,
-    #     'send_missed_messages': {
-    #         'enable': True,
-    #         'count': 10,
-    #     }
-    # },
-    #
-    #
-    # {
-    #     'source': [-1001902661742],
-    #     'target': [-1002035259752, -1002073101732],
-    #     'pdf_watermark': {
-    #         -1002035259752: FIRST_CHANNELS_WATERMARK,
-    #         -1002073101732: SECOND_CHANNELS_WATERMARK
-    #     },
-    #     'emojis_replacement': DEFAULT_EMOJIS_REPLACEMENT,
-    #     'text_remove': DEFAULT_TEXTS_REMOVE,
-    #     'send_missed_messages': {
-    #         'enable': True,
-    #         'count': 10,
-    #     }
-    # },
-    #
-    #
-    #
-    # {
-    #     'source': [-1001875008224],
-    #     'target': [-1001850139609, -1002126954655],
-    #     'pdf_watermark': {
-    #         -1001850139609: FIRST_CHANNELS_WATERMARK,
-    #         -1002126954655: SECOND_CHANNELS_WATERMARK
-    #     },
-    #     'emojis_replacement': DEFAULT_EMOJIS_REPLACEMENT,
-    #     'text_remove': DEFAULT_TEXTS_REMOVE,
-    #     'send_missed_messages': {
-    #         'enable': True,
-    #         'count': 10,
-    #     }
-    # },
-    # {
-    #     'source': [-1002077332944],
-    #     'target': [-1002122994781, -1002068405417],
-    #     'pdf_watermark': {
-    #         -1002122994781: FIRST_CHANNELS_WATERMARK,
-    #         -1002068405417: SECOND_CHANNELS_WATERMARK
-    #     },
-    #     'emojis_replacement': DEFAULT_EMOJIS_REPLACEMENT,
-    #     'text_remove': DEFAULT_TEXTS_REMOVE,
-    #     'send_missed_messages': {
-    #         'enable': True,
-    #         'count': 10,
-    #     }
-    # }
+    {
+        'source': [-1002140354840],
+        'target': [-1002101629483, -1001824470981],
+        'pdf_watermark': {
+            -1002101629483: FIRST_CHANNELS_WATERMARK,
+            -1001824470981: SECOND_CHANNELS_WATERMARK
+        },
+        'emojis_replacement': DEFAULT_EMOJIS_REPLACEMENT,
+        'text_remove': DEFAULT_TEXTS_REMOVE,
+        'send_missed_messages': {
+            'enable': True,
+            'count': 3,
+        }
+    },
+
+    {
+        'source': [-1002029276392],
+        'target': [-1002037268961, -1001990321789],
+        'pdf_watermark': {
+            -1002037268961: FIRST_CHANNELS_WATERMARK,
+            -1001990321789: SECOND_CHANNELS_WATERMARK
+        },
+        'emojis_replacement': DEFAULT_EMOJIS_REPLACEMENT,
+        'text_remove': DEFAULT_TEXTS_REMOVE,
+        'send_missed_messages': {
+            'enable': True,
+            'count': 10,
+        }
+    },
+    {
+        'source': [-1002015899398],
+        'target': [-1001990941015, -1002088504178],
+        'pdf_watermark': {
+            -1001990941015: FIRST_CHANNELS_WATERMARK,
+            -1002088504178: SECOND_CHANNELS_WATERMARK
+        },
+        'emojis_replacement': DEFAULT_EMOJIS_REPLACEMENT,
+        'text_remove': DEFAULT_TEXTS_REMOVE,
+        'send_missed_messages': {
+            'enable': True,
+            'count': 10,
+        }
+    },
+    {
+        'source': [-1002096262333],
+        'target': [-1002087010315, -1001938907223],
+        'pdf_watermark': {
+            -1002087010315: FIRST_CHANNELS_WATERMARK,
+            -1001938907223: SECOND_CHANNELS_WATERMARK
+        },
+        'emojis_replacement': DEFAULT_EMOJIS_REPLACEMENT,
+        'text_remove': DEFAULT_TEXTS_REMOVE,
+        'send_missed_messages': {
+            'enable': True,
+            'count': 10,
+        }
+    },
+    {
+        'source': [-1001902661742],
+        'target': [-1002035259752, -1002073101732],
+        'pdf_watermark': {
+            -1002035259752: FIRST_CHANNELS_WATERMARK,
+            -1002073101732: SECOND_CHANNELS_WATERMARK
+        },
+        'emojis_replacement': DEFAULT_EMOJIS_REPLACEMENT,
+        'text_remove': DEFAULT_TEXTS_REMOVE,
+        'send_missed_messages': {
+            'enable': True,
+            'count': 10,
+        }
+    },
+    {
+        'source': [-1001875008224],
+        'target': [-1001850139609, -1002126954655],
+        'pdf_watermark': {
+            -1001850139609: FIRST_CHANNELS_WATERMARK,
+            -1002126954655: SECOND_CHANNELS_WATERMARK
+        },
+        'emojis_replacement': DEFAULT_EMOJIS_REPLACEMENT,
+        'text_remove': DEFAULT_TEXTS_REMOVE,
+        'send_missed_messages': {
+            'enable': True,
+            'count': 10,
+        }
+    },
+    {
+        'source': [-1002077332944],
+        'target': [-1002122994781, -1002068405417],
+        'pdf_watermark': {
+            -1002122994781: FIRST_CHANNELS_WATERMARK,
+            -1002068405417: SECOND_CHANNELS_WATERMARK
+        },
+        'emojis_replacement': DEFAULT_EMOJIS_REPLACEMENT,
+        'text_remove': DEFAULT_TEXTS_REMOVE,
+        'send_missed_messages': {
+            'enable': True,
+            'count': 10,
+        }
+    }
 ]
