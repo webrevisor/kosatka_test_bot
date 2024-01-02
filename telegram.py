@@ -266,12 +266,18 @@ class TelegramChannelSync:
 
                 # Выполнение запроса на выборку данных из таблицы
                 cursor.execute(f'SELECT * FROM last_messages WHERE channel_id = {event.chat_id}')
-                channel_id, message_id = cursor.fetchone()
-                if message_id < event.message.id:
+                if cursor.fetchone() is None:
                     cursor.execute('''
                             INSERT OR REPLACE INTO last_messages (channel_id, message_id)
                             VALUES (?, ?)
                         ''', (event.chat_id, event.message.id))
+                else:
+                    channel_id, message_id = cursor.fetchone()
+                    if message_id < event.message.id:
+                        cursor.execute('''
+                                INSERT OR REPLACE INTO last_messages (channel_id, message_id)
+                                VALUES (?, ?)
+                            ''', (event.chat_id, event.message.id))
                 conn.commit()
             except Exception as e:
                 logger.exception(f"Ошибка при пересылке сообщения: {e}")
