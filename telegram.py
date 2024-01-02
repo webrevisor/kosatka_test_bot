@@ -293,6 +293,7 @@ class TelegramChannelSync:
                 new_message_queue.task_done()
 
     async def _new_message_handler(self, event):
+        logger.info('NEW MESSAGE HANDLER!!!!')
         new_message_queue = self.new_message_queues[event.chat_id]
         await new_message_queue.put(event)
 
