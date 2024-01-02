@@ -72,10 +72,9 @@ CHANNELS_LINKS = [
         'text_remove': DEFAULT_TEXTS_REMOVE,
         'send_missed_messages': {
             'enable': True,
-            'count': 10,
+            'count': 50,
         }
     },
-
     {
         'source': [-1002029276392],
         'target': [-1002037268961, -1001990321789],
@@ -87,7 +86,7 @@ CHANNELS_LINKS = [
         'text_remove': DEFAULT_TEXTS_REMOVE,
         'send_missed_messages': {
             'enable': True,
-            'count': 10,
+            'count': 50,
         }
     },
     {
@@ -101,7 +100,7 @@ CHANNELS_LINKS = [
         'text_remove': DEFAULT_TEXTS_REMOVE,
         'send_missed_messages': {
             'enable': True,
-            'count': 10,
+            'count': 50,
         }
     },
     {
@@ -115,7 +114,7 @@ CHANNELS_LINKS = [
         'text_remove': DEFAULT_TEXTS_REMOVE,
         'send_missed_messages': {
             'enable': True,
-            'count': 10,
+            'count': 50,
         }
     },
     {
@@ -129,7 +128,7 @@ CHANNELS_LINKS = [
         'text_remove': DEFAULT_TEXTS_REMOVE,
         'send_missed_messages': {
             'enable': True,
-            'count': 10,
+            'count': 50,
         }
     },
     {
@@ -143,7 +142,7 @@ CHANNELS_LINKS = [
         'text_remove': DEFAULT_TEXTS_REMOVE,
         'send_missed_messages': {
             'enable': True,
-            'count': 10,
+            'count': 50,
         }
     },
     {
@@ -157,7 +156,7 @@ CHANNELS_LINKS = [
         'text_remove': DEFAULT_TEXTS_REMOVE,
         'send_missed_messages': {
             'enable': True,
-            'count': 10,
+            'count': 50,
         }
     }
 ]
