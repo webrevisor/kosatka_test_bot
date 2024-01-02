@@ -22,7 +22,7 @@ async def add_watermark(input_pdf_path, watermark_image_path, output_pdf_path, w
         watermark_height = int(original_watermark_height * (watermark_width / original_watermark_width))
 
         # Масштабирование и поворот водяного знака
-        resized_watermark = watermark_img.resize((watermark_width, watermark_height), Image.ANTIALIAS)
+        resized_watermark = watermark_img.resize((watermark_width, watermark_height), Image.LANCZOS)
         rotated_watermark = resized_watermark.rotate(watermark_angle, expand=True)
 
         # Настройка прозрачности водяного знака
