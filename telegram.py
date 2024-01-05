@@ -164,11 +164,53 @@ class TelegramChannelSync:
             logger.exception(f"Ошибка при добавлении watermark-и: {e}")
 
     @staticmethod
-    def _emojis_replace(text, emoji_replacement):
+    def _emojis_replace(text, emoji_replacement, entities):
         try:
             for search_emoji, replacement in emoji_replacement.items():
-                text = text.replace(search_emoji, replacement)
-            return text.strip()
+
+                search_emoji_res = ' ' + search_emoji
+                search_emoji_offset = text.find(search_emoji_res)
+                if search_emoji_offset == -1:
+                    search_emoji_res = search_emoji + ' '
+                    search_emoji_offset = text.find(search_emoji_res + ' ')
+                    if search_emoji_offset == -1:
+                        search_emoji_res = search_emoji
+                        search_emoji_offset = text.find(search_emoji_res)
+
+                if search_emoji_offset == -1:
+                    continue
+
+                search_emoji_len = len(search_emoji_res)
+                replacement_len = len(replacement)
+
+                if search_emoji_len == replacement_len:
+                    text = text.replace(search_emoji_res, replacement)
+                    continue
+
+                if entities is None:
+                    continue
+
+                formatted_entities = []
+                minus = 0
+
+                text = text.replace(search_emoji_res, replacement)
+                minus_offset = search_emoji_len - replacement_len + 1
+                print(search_emoji_res, search_emoji_len, replacement_len, minus_offset)
+                for entity in entities:
+                    if minus > 0:
+                        entity.offset -= minus
+                    entity_offset_end = entity.offset + entity.length
+                    print(search_emoji_offset, entity.offset, entity_offset_end)
+                    if entity.offset > search_emoji_offset or search_emoji_offset > entity_offset_end:
+                        formatted_entities.append(entity)
+                        continue
+
+                    if entity.offset <= search_emoji_offset <= entity_offset_end:
+                        minus += minus_offset
+                        entity.length -= minus
+                        formatted_entities.append(entity)
+
+            return text.strip(), formatted_entities
         except Exception as e:
             logger.exception(f"Ошибка при изменении Emoji: {e}")
 
@@ -240,9 +282,8 @@ class TelegramChannelSync:
 
                 for link in self.channel_links:
                     if event.chat_id in link['source']:
-                        formatted_text = self._emojis_replace(event.message.message, link['emojis_replacement'])
-                        formatted_text, formatted_entities = self._remove_text(formatted_text, link['text_remove'],
-                                                                               event.message.entities)
+                        formatted_text, formatted_entities = self._emojis_replace(event.message.message, link['emojis_replacement'], event.message.entities)
+                        formatted_text, formatted_entities = self._remove_text(formatted_text, link['text_remove'], formatted_entities)
 
                         if formatted_text == '':
                             event.message.message = None

@@ -3,3 +3,4 @@ telegram_bot.log
 __pycache__
 telegram.db
 downloads/*
+.idea
