@@ -166,6 +166,7 @@ class TelegramChannelSync:
     @staticmethod
     def _emojis_replace(text, emoji_replacement, entities):
         try:
+            formatted_entities = []
             for search_emoji, replacement in emoji_replacement.items():
 
                 search_emoji_res = ' ' + search_emoji
