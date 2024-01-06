@@ -25,8 +25,8 @@ async def clear_mapped_messages():
         for channel in sync_bot.source_channels:
             messages = database.get_mapped_messages_by_acc_channel(kos_chips.ACCOUNT_NAME, channel)
             ids = [t[0] for t in messages]
-            if len(ids) > 50:
-                ids = ids[:-50] if len(ids) > 50 else ids
+            if len(ids) > 100:
+                ids = ids[:-100] if len(ids) > 100 else ids
                 database.remove_mapped_messages(ids)
         await asyncio.sleep(60 * 5)
 
