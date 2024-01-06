@@ -2,7 +2,7 @@ from pdf2image import convert_from_path
 from PIL import Image
 from PyPDF2 import PdfWriter, PdfReader
 import io
-import config
+from configs import base
 
 
 async def add_watermark(input_pdf_path, watermark_image_path, output_pdf_path, watermark_scale=0.99, watermark_angle=0,
@@ -12,7 +12,7 @@ async def add_watermark(input_pdf_path, watermark_image_path, output_pdf_path, w
     original_watermark_width, original_watermark_height = watermark_img.size
 
     # Конвертация PDF в список изображений
-    pages = convert_from_path(input_pdf_path, dpi=config.PDF_DPI, fmt='png')
+    pages = convert_from_path(input_pdf_path, dpi=base.PDF_DPI, fmt='png')
 
     pdf_writer = PdfWriter()
 
@@ -50,11 +50,3 @@ async def add_watermark(input_pdf_path, watermark_image_path, output_pdf_path, w
     # Сохранение итогового файла
     with open(output_pdf_path, "wb") as output_pdf_file:
         pdf_writer.write(output_pdf_file)
-
-
-# Использование функции
-# add_watermark('1.pdf', 'WATER1.png', 'output_pdf1_099_0_1.pdf', 0.99, 0, 1)
-# add_watermark('1.pdf', 'WATER1.png', 'output_pdf1_099_45_05.pdf', 0.99, 45, 0.5)
-# add_watermark('1.pdf', 'WATER2.png', 'output_pdf1_07_0_1.pdf', 0.7, 0, 1)
-# add_watermark('4.pdf', 'WATER1.png', 'output_pdf4_099_0_1.pdf', 0.99, 0, 1)
-# add_watermark('4.pdf', 'WATER2.png', 'output_pdf4_099_45_05.pdf', 0.99, 45, 0.5)

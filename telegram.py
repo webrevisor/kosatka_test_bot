@@ -1,29 +1,32 @@
 import asyncio
-
+import os
 from telethon import TelegramClient, events
 from telethon.tl.types import DocumentAttributeFilename
-from logger import logger
-import config
+import log
+import database
 import pdfff
-import os
-from database import conn, cursor
 from custom_event import CustomEvent
+from dto.mapped_message import MappedMessageDTO
+from configs import base
 
 
 class TelegramChannelSync:
-    def __init__(self, api_id, api_hash, channel_links):
-        self.client = TelegramClient('session_name', api_id, api_hash)
-        self.channel_links = channel_links
-        self.mapped_channels = {}  # Словарь для отслеживания ID сообщений
-        self.message_ids = {}  # Словарь для отслеживания ID сообщений
+    def __init__(self, account_name, account_session, api_id, api_hash, channels_links):
+        self.client = None
+        self.account_name = account_name
+        self.account_session = account_session
+        self.api_id = api_id
+        self.api_hash = api_hash
+        self.logger = log.get_logger_by_account(account_name)
+        self.channel_links = channels_links
+        self.source_channels = list(channels_links.keys())
         self.new_message_queues = {}
 
     async def run(self):
         try:
+            self.client = TelegramClient(self.account_session, self.api_id, self.api_hash)
             await self.client.start()
-
-            logger.info("Клиент Telegram успешно запущен")
-            self._set_mapped_channels()
+            self.logger.info("Клиент Telegram успешно запущен")
             tasks = self._set_queues()
             await self._missed_messages()
             self._setup_handlers()
@@ -33,59 +36,120 @@ class TelegramChannelSync:
                 for task in tasks:
                     task.cancel()
         except Exception as e:
-            logger.exception(f"Произошла ошибка: {e}")
+            self.logger.exception(f"Произошла ошибка: {e}")
 
-    def _set_queues(self):
-        tasks = []
-        for channel_id in list(self.mapped_channels.keys()):
-            self.new_message_queues[channel_id] = asyncio.Queue()
-            tasks.append(
-                self.client.loop.create_task(
-                    self.process_new_message_queue(
-                        self.new_message_queues[channel_id]
-                    )
-                )
+    def _setup_handlers(self):
+        self.client.on(events.NewMessage(chats=self.source_channels))(self._new_message_handler)
+        self.client.on(events.MessageEdited(chats=self.source_channels))(self._edit_message_handler)
+        self.client.on(events.MessageDeleted(chats=self.source_channels))(self._delete_message_handler)
+
+    async def _process_new_message(self, queue):
+        while True:
+            event = await queue.get()
+
+            try:
+                self.logger.info('В канале [{}] появилось новое сообщение [{}].'.format(event.chat_id, event.message.id))
+
+                file_path = await self._download_pdf(event)
+
+                link = self.channel_links[event.chat_id]
+                for target in link['target']:
+                    if file_path is not None:
+                        result_path = await self._add_watermark_to_pdf(
+                            link['pdf_watermark'][target],
+                            target,
+                            file_path
+                        )
+
+                        sent_message = await self.client.send_file(
+                            target,
+                            result_path,
+                            caption=event.message.message,
+                            formatting_entities=event.message.entities
+                        )
+                        self._remove_pdf(result_path)
+                    else:
+                        sent_message = await self.client.send_message(target, event.message)
+
+                    database.insert_mapped_message(self.account_name, event.chat_id, event.message.id, target, sent_message.id)
+                    self.logger.info('Сообщение [{}] отправлено в канал [{}].'.format(event.message.id, target))
+
+                if file_path:
+                    self._remove_pdf(file_path)
+
+                database.insert_last_message(self.account_name, event.chat_id, event.message.id)
+            except Exception as e:
+                self.logger.exception(f"Ошибка при пересылке сообщения: {e}")
+            finally:
+                queue.task_done()
+
+    async def _new_message_handler(self, event):
+        last_message_data = database.get_last_messages_by_channel(event.chat_id)
+        if last_message_data is not None:
+            account_name_, channel_id, message_id = last_message_data
+            if event.message.id <= message_id:
+                return
+
+        queue = self.new_message_queues[event.chat_id]
+        await queue.put(event)
+
+    async def _edit_message_handler(self, event):
+        self.logger.info('В канале [{}] было изменено сообщение [{}.'.format(event.chat_id, event.message.id))
+
+        link = self.channel_links[event.chat_id]
+        for target in link['target']:
+            mapped_massage = self._get_mapped_message_dto(self.account_name, event.chat_id, event.message.id, target)
+
+            await self.client.edit_message(
+                target,
+                mapped_massage.target_message_id,
+                event.message.message,
+                file=event.message.media,
+                formatting_entities=event.message.entities
             )
 
-        return tasks
+            self.logger.info('Сообщение [{}] было отредактировано к канале [{}].'.format(event.message.id, target))
 
-    def _set_mapped_channels(self):
-        for link in self.channel_links:
-            for source_id in link['source']:
-                if source_id in self.mapped_channels:
-                    # Объединяем списки, если исходный канал уже есть в результате
-                    self.mapped_channels[source_id]['target'] = list(set(self.mapped_channels[source_id] + link['target']))
-                else:
-                    # Создаем новую запись, если исходного канала еще нет в результате
-                    self.mapped_channels[source_id] = {'target': link['target']}
+    async def _delete_message_handler(self, event):
+        for deleted_id in event.deleted_ids:
+            self.logger.info('В канале [{}] было удаленно сообщение [{}].'.format(event.chat_id, deleted_id))
 
-                self.mapped_channels[source_id]['send_missed_messages'] = link['send_missed_messages']
+            link = self.channel_links[event.chat_id]
+            for target in link['target']:
+                mapped_massage = self._get_mapped_message_dto(self.account_name, event.chat_id, deleted_id, target)
+                await self.client.delete_messages(target, [mapped_massage.target_message_id])
+                database.delete_mapped_message(
+                    self.account_name,
+                    event.chat_id,
+                    deleted_id,
+                    target,
+                    mapped_massage.target_message_id
+                )
+
+                self.logger.info('Сообщение [{}] удалено в канале [{}]'.format(deleted_id, target))
 
     async def _missed_messages(self):
-        # Выполнение запроса на выборку данных из таблицы
-        cursor.execute('SELECT * FROM last_messages')
+        last_messages = database.get_last_messages_by_acc(self.account_name)
+        for last_message in last_messages:
+            account_name, channel_id, message_id = last_message
 
-        # Извлечение всех записей
-        records = cursor.fetchall()
-        for record in records:
-            channel_id, message_id = record
-
-            if channel_id not in self.mapped_channels:
+            if channel_id not in self.source_channels:
                 continue
 
-            if not self.mapped_channels[channel_id]['send_missed_messages']['enable']:
+            link = self.channel_links[channel_id]
+            if not link['send_missed_messages']['enable']:
                 continue
 
-            count = self.mapped_channels[channel_id]['send_missed_messages']['count']
-            last_messages = await self.client.get_messages(channel_id, limit=1)
+            count = link['send_missed_messages']['count']
+            last_message_in_channel = await self.client.get_messages(channel_id, limit=1)
 
-            if message_id == last_messages[0].id:
+            if message_id == last_message_in_channel[0].id:
                 continue
 
-            if last_messages[0].id - message_id <= count:
+            if last_message_in_channel[0].id - message_id <= count:
                 iter_messages = self.client.iter_messages(channel_id, offset_id=message_id, reverse=True)
             else:
-                offset_id = last_messages[0].id - count
+                offset_id = last_message_in_channel[0].id - count
                 iter_messages = self.client.iter_messages(channel_id, offset_id=offset_id, reverse=True)
 
             async for message in iter_messages:
@@ -93,13 +157,19 @@ class TelegramChannelSync:
                 await self._new_message_handler(custom_event)
                 await asyncio.sleep(3)
 
-    def _setup_handlers(self):
-        self.client.on(events.NewMessage(chats=self._get_source_channels()))(self._new_message_handler)
-        self.client.on(events.MessageEdited(chats=self._get_source_channels()))(self._edit_message_handler)
-        self.client.on(events.MessageDeleted(chats=self._get_source_channels()))(self._delete_message_handler)
+    def _set_queues(self):
+        tasks = []
+        for channel_id in self.source_channels:
+            self.new_message_queues[channel_id] = asyncio.Queue()
+            tasks.append(
+                self.client.loop.create_task(
+                    self._process_new_message(
+                        self.new_message_queues[channel_id]
+                    )
+                )
+            )
 
-    def _get_source_channels(self):
-        return list(set([channel for link in self.channel_links for channel in link['source']]))
+        return tasks
 
     async def _download_pdf(self, event):
         try:
@@ -111,40 +181,24 @@ class TelegramChannelSync:
             for attribute in event.message.media.document.attributes:
                 if isinstance(attribute, DocumentAttributeFilename):
                     file_name = attribute.file_name
-                    logger.info(f"Обнаружен файл: {file_name}")
+                    self.logger.info(f"Обнаружен файл: {file_name}")
                     break
 
             if file_name is None:
-                logger.exception("Название файла не обнаружено")
+                self.logger.exception("Название файла не обнаружено")
                 return None
 
             file_path = str(await self.client.download_media(
                 event.message,
-                file=f'{config.PDF_DOWNLOAD_DIRECTORY}/{event.chat_id}/{event.message.id}/{file_name}'
+                file=f'{base.DOWNLOAD_PATH}/{event.chat_id}/{event.message.id}/{file_name}'
             ))
 
-            logger.info(f"Скачан PDF-файл: {file_path}")
+            self.logger.info(f"Скачан PDF-файл: {file_path}")
             return file_path
         except Exception as e:
-            logger.exception(f"Ошибка при скачивании PDF-файла: {e}")
+            self.logger.exception(f"Ошибка при скачивании PDF-файла: {e}")
 
-    @staticmethod
-    def _remove_pdf(file_path):
-        try:
-            # Удаление файла
-            os.remove(file_path)
-
-            # Проверка и удаление первой вложенной папки, если она пуста
-            first_parent_folder = os.path.dirname(file_path)
-            if not os.listdir(first_parent_folder):  # Проверка, пуста ли папка
-                os.rmdir(first_parent_folder)
-
-            logger.info(f"PDF-файл удален: {file_path}")
-        except Exception as e:
-            logger.exception(f"Ошибка при удалении PDF-файла: {e}")
-
-    @staticmethod
-    async def _add_watermark_to_pdf(watermark_config, target, file_path):
+    async def _add_watermark_to_pdf(self, watermark_config, target, file_path):
         try:
             target_dir = os.path.dirname(file_path) + f"/{target}"
             os.mkdir(target_dir)
@@ -158,218 +212,30 @@ class TelegramChannelSync:
                 watermark_config['angle'],
                 watermark_config['opacity'],
             )
-            logger.info(f"На PDF-файл {file_path}, добавлена watermark-а: {watermark_config['path']}")
+            self.logger.info(f"На PDF-файл {file_path}, добавлена watermark-а: {watermark_config['path']}")
             return result
         except Exception as e:
-            logger.exception(f"Ошибка при добавлении watermark-и: {e}")
+            self.logger.exception(f"Ошибка при добавлении watermark-и: {e}")
+
+    def _remove_pdf(self, file_path):
+        try:
+            os.remove(file_path)
+
+            first_parent_folder = os.path.dirname(file_path)
+            if not os.listdir(first_parent_folder):
+                os.rmdir(first_parent_folder)
+
+            self.logger.info(f"PDF-файл удален: {file_path}")
+        except Exception as e:
+            self.logger.exception(f"Ошибка при удалении PDF-файла: {e}")
 
     @staticmethod
-    def _emojis_replace(text, emoji_replacement, entities):
-        try:
-            formatted_entities = []
-            for search_emoji, replacement in emoji_replacement.items():
+    def _get_mapped_message_dto(account_name, source_channel_id, source_message_id, target_channel_id):
+        mapped_massage_response = database.get_mapped_message_by(
+            account_name,
+            source_channel_id,
+            source_message_id,
+            target_channel_id
+        )
 
-                search_emoji_res = ' ' + search_emoji
-                search_emoji_offset = text.find(search_emoji_res)
-                if search_emoji_offset == -1:
-                    search_emoji_res = search_emoji + ' '
-                    search_emoji_offset = text.find(search_emoji_res + ' ')
-                    if search_emoji_offset == -1:
-                        search_emoji_res = search_emoji
-                        search_emoji_offset = text.find(search_emoji_res)
-
-                if search_emoji_offset == -1:
-                    continue
-
-                search_emoji_len = len(search_emoji_res)
-                replacement_len = len(replacement)
-
-                if search_emoji_len == replacement_len:
-                    text = text.replace(search_emoji_res, replacement)
-                    continue
-
-                if entities is None:
-                    continue
-
-                formatted_entities = []
-                minus = 0
-
-                text = text.replace(search_emoji_res, replacement)
-                minus_offset = search_emoji_len - replacement_len + 1
-                print(search_emoji_res, search_emoji_len, replacement_len, minus_offset)
-                for entity in entities:
-                    if minus > 0:
-                        entity.offset -= minus
-                    entity_offset_end = entity.offset + entity.length
-                    print(search_emoji_offset, entity.offset, entity_offset_end)
-                    if entity.offset > search_emoji_offset or search_emoji_offset > entity_offset_end:
-                        formatted_entities.append(entity)
-                        continue
-
-                    if entity.offset <= search_emoji_offset <= entity_offset_end:
-                        minus += minus_offset
-                        entity.length -= minus
-                        formatted_entities.append(entity)
-
-            return text.strip(), formatted_entities
-        except Exception as e:
-            logger.exception(f"Ошибка при изменении Emoji: {e}")
-
-    @staticmethod
-    def _remove_text(text, remove_text, entities):
-
-        formatted_remove_text = remove_text + "\n"
-        formatted_remove_text_offset_start = text.find(formatted_remove_text)
-        if formatted_remove_text_offset_start == -1:
-            formatted_remove_text = remove_text + " "
-            formatted_remove_text_offset_start = text.find(formatted_remove_text)
-            if formatted_remove_text_offset_start == -1:
-                formatted_remove_text = remove_text
-                formatted_remove_text_offset_start = text.find(formatted_remove_text)
-
-        if formatted_remove_text_offset_start == -1:
-            return text, entities
-
-        formatted_text_with_removed_text = text.replace(formatted_remove_text, '')
-        call_plus = len(formatted_text_with_removed_text) - len(formatted_text_with_removed_text.strip())
-        formatted_remove_text_length = len(formatted_remove_text) + call_plus
-        formatted_remove_text_offset_end = formatted_remove_text_offset_start + formatted_remove_text_length
-
-        formatted_entities = []
-        minus = 0
-        if entities is None:
-            return formatted_text_with_removed_text, None
-
-        for entity in entities:
-            entity.offset -= minus
-            entity_offset_end = entity.offset + entity.length
-
-            if entity.offset == formatted_remove_text_offset_start and entity.length == formatted_remove_text_length:
-                continue
-
-            if formatted_remove_text_offset_start < entity.offset or formatted_remove_text_offset_start > entity_offset_end:
-                formatted_entities.append(entity)
-                continue
-
-            if formatted_remove_text_offset_end < entity_offset_end:
-                minus = formatted_remove_text_length + 1
-                entity.length -= minus
-                formatted_entities.append(entity)
-                continue
-
-            minus = entity_offset_end - formatted_remove_text_offset_start + 1
-            entity.length -= minus
-            formatted_entities.append(entity)
-
-        return formatted_text_with_removed_text, formatted_entities
-
-    async def process_new_message_queue(self, new_message_queue):
-        while True:
-            # Получаем событие из очереди
-            event = await new_message_queue.get()
-            logger.info('GETING EVENT!!!!!!')
-
-            try:
-                # Выполнение запроса на выборку данных из таблицы
-                cursor.execute(f'SELECT * FROM last_messages WHERE channel_id = {event.chat_id}')
-                last_message_data = cursor.fetchone()
-
-                if last_message_data is not None:
-                    channel_id, message_id = last_message_data
-                    if event.message.id <= message_id:
-                        return
-
-                file_path = await self._download_pdf(event)
-
-                for link in self.channel_links:
-                    if event.chat_id in link['source']:
-                        formatted_text, formatted_entities = self._emojis_replace(event.message.message, link['emojis_replacement'], event.message.entities)
-                        formatted_text, formatted_entities = self._remove_text(formatted_text, link['text_remove'], formatted_entities)
-
-                        if formatted_text == '':
-                            event.message.message = None
-                        else:
-                            event.message.message = formatted_text
-
-                        event.message.entities = formatted_entities
-
-                        for target in link['target']:
-                            if file_path is not None:
-                                result_path = await self._add_watermark_to_pdf(link['pdf_watermark'][target], target,
-                                                                               file_path)
-                                sent_message = await self.client.send_file(
-                                    target,
-                                    result_path,
-                                    caption=event.message.message,
-                                    formatting_entities=event.message.entities
-                                )
-                                self._remove_pdf(result_path)
-                            else:
-                                if formatted_text != '' or (formatted_text == '' and event.message.media):
-                                    sent_message = await self.client.send_message(target, event.message)
-                                else:
-                                    break
-                            self._update_message_ids(event.chat_id, event.message.id, target, sent_message.id)
-                            logger.info(
-                                f"Новое сообщение [{event.message.id}] из [{event.chat_id}] переслано в [{target}]")
-
-                if file_path:
-                    self._remove_pdf(file_path)
-
-                if last_message_data is None:
-                    cursor.execute('''
-                            INSERT OR REPLACE INTO last_messages (channel_id, message_id)
-                            VALUES (?, ?)
-                        ''', (event.chat_id, event.message.id))
-                else:
-                    channel_id, message_id = last_message_data
-                    if message_id < event.message.id:
-                        cursor.execute('''
-                                INSERT OR REPLACE INTO last_messages (channel_id, message_id)
-                                VALUES (?, ?)
-                            ''', (event.chat_id, event.message.id))
-                conn.commit()
-            except Exception as e:
-                logger.exception(f"Ошибка при пересылке сообщения: {e}")
-            finally:
-                # Помечаем задачу как выполненную
-                new_message_queue.task_done()
-
-    async def _new_message_handler(self, event):
-        logger.info('NEW MESSAGE HANDLER!!!!')
-        new_message_queue = self.new_message_queues[event.chat_id]
-        logger.info('GETING QUEUE OF MESSAGES!!!!')
-        await new_message_queue.put(event)
-
-    async def _edit_message_handler(self, event):
-        try:
-            for link in self.channel_links:
-                if event.chat_id in link['source']:
-                    formatted_text = self._emojis_replace(event.message.message, link['emojis_replacement'])
-                    event.message.message = formatted_text
-                    for target in link['target']:
-                        if (event.chat_id, event.message.id, target) in self.message_ids:
-                            target_msg_id = self.message_ids[(event.chat_id, event.message.id, target)]
-                            await self.client.edit_message(target, target_msg_id, event.message.message,
-                                                           file=event.message.media,
-                                                           formatting_entities=event.message.entities)
-                            logger.info(
-                                f"Сообщение [{event.message.id}] отредактировано в [{event.chat_id}] и обновлено в [{target}]")
-        except Exception as e:
-            logger.exception(f"Ошибка при редактировании сообщения: {e}")
-
-    async def _delete_message_handler(self, event):
-        try:
-            for deleted_id in event.deleted_ids:
-                for link in self.channel_links:
-                    if event.chat_id in link['source']:
-                        for target in link['target']:
-                            if (event.chat_id, deleted_id, target) in self.message_ids:
-                                target_msg_id = self.message_ids[(event.chat_id, deleted_id, target)]
-                                await self.client.delete_messages(target, [target_msg_id])
-                                logger.info(f"Сообщение [{deleted_id}] из [{event.chat_id}] удалено в [{target}]")
-        except Exception as e:
-            logger.exception(f"Ошибка при удалении сообщения: {e}")
-
-    def _update_message_ids(self, source_chat_id, source_msg_id, target_chat_id, target_msg_id):
-        self.message_ids[(source_chat_id, source_msg_id, target_chat_id)] = target_msg_id
+        return MappedMessageDTO(mapped_massage_response)

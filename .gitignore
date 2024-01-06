@@ -1,6 +1,5 @@
-session_name.session
-telegram_bot.log
-__pycache__
+*.session
+logs/*
+storage/downloads/*
 telegram.db
-downloads/*
 .idea
