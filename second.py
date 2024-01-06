@@ -1,14 +1,14 @@
 import asyncio
-from configs import kos_chips
+from configs import second
 from telegram import TelegramChannelSync
 import database
 
 sync_bot = TelegramChannelSync(
-    kos_chips.ACCOUNT_NAME,
-    kos_chips.ACCOUNT_SESSION,
-    kos_chips.API_ID,
-    kos_chips.API_HASH,
-    kos_chips.CHANNELS_LINKS
+    second.ACCOUNT_NAME,
+    second.ACCOUNT_SESSION,
+    second.API_ID,
+    second.API_HASH,
+    second.CHANNELS_LINKS
 )
 
 

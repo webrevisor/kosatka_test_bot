@@ -8,6 +8,7 @@ import pdfff
 from custom_event import CustomEvent
 from dto.mapped_message import MappedMessageDTO
 from configs import base
+from formatter import replace_emodji, remove_text
 
 
 class TelegramChannelSync:
@@ -48,11 +49,19 @@ class TelegramChannelSync:
             event = await queue.get()
 
             try:
-                self.logger.info('В канале [{}] появилось новое сообщение [{}].'.format(event.chat_id, event.message.id))
-
                 file_path = await self._download_pdf(event)
 
                 link = self.channel_links[event.chat_id]
+                event.message.message, event.message.entities = replace_emodji(
+                    event.message.message,
+                    link['emojis_for_replace'],
+                    event.message.entities
+                )
+                event.message.message, event.message.entities = remove_text(
+                    event.message.message,
+                    link['text_for_remove'],
+                    event.message.entities
+                )
                 for target in link['target']:
                     if file_path is not None:
                         result_path = await self._add_watermark_to_pdf(
@@ -69,7 +78,10 @@ class TelegramChannelSync:
                         )
                         self._remove_pdf(result_path)
                     else:
-                        sent_message = await self.client.send_message(target, event.message)
+                        if event.message.message != '' or (event.message.message == '' and event.message.media):
+                            sent_message = await self.client.send_message(target, event.message)
+                        else:
+                            break
 
                     database.insert_mapped_message(self.account_name, event.chat_id, event.message.id, target, sent_message.id)
                     self.logger.info('Сообщение [{}] отправлено в канал [{}].'.format(event.message.id, target))
@@ -98,6 +110,17 @@ class TelegramChannelSync:
 
         link = self.channel_links[event.chat_id]
         for target in link['target']:
+            event.message.message, event.message.entities = replace_emodji(
+                event.message.message,
+                link['emojis_for_replace'],
+                event.message.entities
+            )
+            event.message.message, event.message.entities = remove_text(
+                event.message.message,
+                link['text_for_remove'],
+                event.message.entities
+            )
+
             mapped_massage = self._get_mapped_message_dto(self.account_name, event.chat_id, event.message.id, target)
 
             await self.client.edit_message(

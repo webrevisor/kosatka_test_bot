@@ -93,6 +93,15 @@ def get_last_messages_by_channel(channel_id):
     return response.fetchone()
 
 
-def remove_mapped_message():
-    cursor.execute('DELETE FROM mapped_messages WHERE id = (SELECT MIN(id) FROM mapped_messages)')
+def remove_mapped_messages(ids):
+    placeholder = '?'  # For SQLite. See DBAPI paramstyle.
+    placeholders = ', '.join(placeholder for unused in ids)
+    print(placeholders)
+    cursor.execute('DELETE FROM mapped_messages WHERE id IN (%s)' % placeholders, ids)
     conn.commit()
+
+
+def get_mapped_messages_by_acc_channel(account_name, channel_id):
+    response = cursor.execute('''SELECT id FROM mapped_messages where account_name=? and source_channel_id=?''',
+                              (account_name, channel_id))
+    return response.fetchall()
