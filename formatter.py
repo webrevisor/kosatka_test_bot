@@ -1,51 +1,54 @@
 import re
 
 
-def remove_text(text, text_remove, entities):
-    formatted_remove_text = text_remove + "\n"
-    formatted_remove_text_offset_start = text.find(formatted_remove_text)
-    if formatted_remove_text_offset_start == -1:
-        formatted_remove_text = text_remove + " "
+def remove_text(text, texts_remove, entities):
+    for text_remove in texts_remove:
+        formatted_remove_text = text_remove + "\n"
         formatted_remove_text_offset_start = text.find(formatted_remove_text)
         if formatted_remove_text_offset_start == -1:
-            formatted_remove_text = text_remove
+            formatted_remove_text = text_remove + " "
             formatted_remove_text_offset_start = text.find(formatted_remove_text)
+            if formatted_remove_text_offset_start == -1:
+                formatted_remove_text = text_remove
+                formatted_remove_text_offset_start = text.find(formatted_remove_text)
 
-    if formatted_remove_text_offset_start == -1:
-        return text, entities
-
-    formatted_text_with_removed_text = text.replace(formatted_remove_text, '')
-    call_plus = len(formatted_text_with_removed_text) - len(formatted_text_with_removed_text.strip())
-    formatted_remove_text_length = len(formatted_remove_text) + call_plus
-    formatted_remove_text_offset_end = formatted_remove_text_offset_start + formatted_remove_text_length
-
-    formatted_entities = []
-    minus = 0
-    if entities is None:
-        return formatted_text_with_removed_text, None
-
-    for entity in entities:
-        entity.offset -= minus
-        entity_offset_end = entity.offset + entity.length
-
-        if entity.offset == formatted_remove_text_offset_start and entity.length == formatted_remove_text_length:
+        if formatted_remove_text_offset_start == -1:
             continue
 
-        if formatted_remove_text_offset_start < entity.offset or formatted_remove_text_offset_start > entity_offset_end:
-            formatted_entities.append(entity)
-            continue
+        formatted_text_with_removed_text = text.replace(formatted_remove_text, '')
+        call_plus = len(formatted_text_with_removed_text) - len(formatted_text_with_removed_text.strip())
+        formatted_remove_text_length = len(formatted_remove_text) + call_plus
+        formatted_remove_text_offset_end = formatted_remove_text_offset_start + formatted_remove_text_length
 
-        if formatted_remove_text_offset_end < entity_offset_end:
-            minus = formatted_remove_text_length + 1
+        formatted_entities = []
+        minus = 0
+        if entities is None:
+            return formatted_text_with_removed_text, None
+
+        for entity in entities:
+            entity.offset -= minus
+            entity_offset_end = entity.offset + entity.length
+
+            if entity.offset == formatted_remove_text_offset_start and entity.length == formatted_remove_text_length:
+                continue
+
+            if formatted_remove_text_offset_start < entity.offset or formatted_remove_text_offset_start > entity_offset_end:
+                formatted_entities.append(entity)
+                continue
+
+            if formatted_remove_text_offset_end < entity_offset_end:
+                minus = formatted_remove_text_length + 1
+                entity.length -= minus
+                formatted_entities.append(entity)
+                continue
+
+            minus = entity_offset_end - formatted_remove_text_offset_start + 1
             entity.length -= minus
             formatted_entities.append(entity)
-            continue
 
-        minus = entity_offset_end - formatted_remove_text_offset_start + 1
-        entity.length -= minus
-        formatted_entities.append(entity)
+        return formatted_text_with_removed_text, formatted_entities
 
-    return formatted_text_with_removed_text, formatted_entities
+    return text, entities
 
 
 def replace_emodji(text, emoji_replacement, entities):

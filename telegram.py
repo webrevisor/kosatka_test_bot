@@ -29,7 +29,8 @@ class TelegramChannelSync:
             await self.client.start()
             self.logger.info("Клиент Telegram успешно запущен")
             tasks = self._set_queues()
-            await self._missed_messages()
+            await self._umskul_forward()
+            # await self._missed_messages()
             self._setup_handlers()
             try:
                 await self.client.run_until_disconnected()
@@ -43,6 +44,32 @@ class TelegramChannelSync:
         self.client.on(events.NewMessage(chats=self.source_channels))(self._new_message_handler)
         self.client.on(events.MessageEdited(chats=self.source_channels))(self._edit_message_handler)
         self.client.on(events.MessageDeleted(chats=self.source_channels))(self._delete_message_handler)
+
+    async def _umskul_forward(self):
+        if self.account_name == 'second':
+            for source, link in self.channel_links.items():
+                umskul_channels = [
+                    -1001998465549,
+                    -1002054250629,
+                    -1002049685804,
+                    -1002139989415,
+                    -1001990673290,
+                    -1002072496306,
+                    -1002065732379,
+                    -1002028370847,
+                    -1002038583572,
+                    -1001947258382,
+                    -1002073136433,
+                ]
+
+                if source in umskul_channels:
+                    iter_messages = self.client.iter_messages(source, reverse=True)
+                    async for message in iter_messages:
+                        if not message.message and not message.media:
+                            continue
+                        custom_event = CustomEvent(source, message)
+                        await self._new_message_handler(custom_event)
+                        await asyncio.sleep(3)
 
     async def _process_new_message(self, queue):
         while True:
@@ -83,7 +110,8 @@ class TelegramChannelSync:
                         else:
                             break
 
-                    database.insert_mapped_message(self.account_name, event.chat_id, event.message.id, target, sent_message.id)
+                    database.insert_mapped_message(self.account_name, event.chat_id, event.message.id, target,
+                                                   sent_message.id)
                     self.logger.info('Сообщение [{}] отправлено в канал [{}].'.format(event.message.id, target))
 
                 if file_path:
@@ -226,7 +254,7 @@ class TelegramChannelSync:
             target_dir = os.path.dirname(file_path) + f"/{target}"
             os.mkdir(target_dir)
             result = target_dir + "/" + os.path.basename(file_path)
-
+            print('RUN ADDED WATERMARK')
             await pdfff.add_watermark(
                 file_path,
                 watermark_config['path'],
