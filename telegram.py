@@ -89,13 +89,18 @@ class TelegramChannelSync:
                     link['text_for_remove'],
                     event.message.entities
                 )
-                for target in link['target']:
+
+                old_pdf_watermark = {}
+                result_path = ''
+                for id, target in enumerate(link['target'], start=1):
                     if file_path is not None:
-                        result_path = await self._add_watermark_to_pdf(
-                            link['pdf_watermark'][target],
-                            target,
-                            file_path
-                        )
+                        if result_path == '' or not old_pdf_watermark == link['pdf_watermark'][target]:
+                            old_pdf_watermark = link['pdf_watermark'][target]
+                            result_path = await self._add_watermark_to_pdf(
+                                link['pdf_watermark'][target],
+                                target,
+                                file_path
+                            )
 
                         sent_message = await self.client.send_file(
                             target,
@@ -103,7 +108,11 @@ class TelegramChannelSync:
                             caption=event.message.message,
                             formatting_entities=event.message.entities
                         )
-                        self._remove_pdf(result_path)
+
+                        if not len(link['target']) == id and link['pdf_watermark'][target] == link['pdf_watermark'][link['target'][id]]:
+                            unues = 'unused'
+                        else:
+                            self._remove_pdf(result_path)
                     else:
                         if event.message.message != '' or (event.message.message == '' and event.message.media):
                             sent_message = await self.client.send_message(target, event.message)
