@@ -19,3 +19,5 @@ PDF_INBLACK_WATERMARK = {
     'angle': 45,
     'opacity': 0.21,
 }
+
+SYNC_MESSAGES_COUNT = 50

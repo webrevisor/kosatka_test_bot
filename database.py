@@ -42,8 +42,6 @@ def get_mapped_message_by(account_name, source_channel_id, source_message_id, ta
     ''', (account_name, source_channel_id, source_message_id, target_channel_id))
 
     mapped_message = cursor.fetchone()
-    if mapped_message is None:
-        raise ValueError("Not found mapped message")
 
     return mapped_message
 
@@ -96,12 +94,11 @@ def get_last_messages_by_channel(channel_id):
 def remove_mapped_messages(ids):
     placeholder = '?'  # For SQLite. See DBAPI paramstyle.
     placeholders = ', '.join(placeholder for unused in ids)
-    print(placeholders)
     cursor.execute('DELETE FROM mapped_messages WHERE id IN (%s)' % placeholders, ids)
     conn.commit()
 
 
-def get_mapped_messages_by_acc_channel(account_name, channel_id):
-    response = cursor.execute('''SELECT id FROM mapped_messages where account_name=? and source_channel_id=?''',
-                              (account_name, channel_id))
+def get_mapped_messages_by_acc_channel(account_name, channel_id, target_id):
+    response = cursor.execute('''SELECT id FROM mapped_messages where account_name=? and source_channel_id=? and target_channel_id=?''',
+                              (account_name, channel_id, target_id))
     return response.fetchall()

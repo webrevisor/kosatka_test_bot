@@ -1,10 +1,10 @@
 from configs import base
 
 # Аккаунт
-ACCOUNT_NAME = "kos_chips"
-ACCOUNT_SESSION = "kos_chips_session"
-API_ID = 28450705
-API_HASH = 'a1b36bee6eabbc1da8685f87e713c123'
+ACCOUNT_NAME = "chips_insane"
+ACCOUNT_SESSION = "chips_insane_session"
+API_ID = 28974917
+API_HASH = 'a003b936fe8a05e702ffefc2c46f8aa0'
 
 # Настройка поста
 TEXT_FOR_REMOVE = [
@@ -35,31 +35,58 @@ EMOJIS_REPLACEMENT = {
 
 # Настройка связок каналов
 CHANNELS_LINKS = {
-    -1002076759704: {
-        'target': [-1002122544680, -1002095523939],
+    -1002100608337: {
+        'target': [-1002101057337, -1002064216109],
         'pdf_watermark': {
-            -1002122544680: base.PDF_INSANE_WATERMARK,
-            -1002095523939: base.PDF_INBLACK_WATERMARK
+            -1002101057337: base.PDF_INSANE_WATERMARK,
+            -1002064216109: base.PDF_INBLACK_WATERMARK,
         },
         'emojis_for_replace': EMOJIS_REPLACEMENT,
         'text_for_remove': TEXT_FOR_REMOVE,
-        'send_missed_messages': {'enable': True, 'count': 3}
+        'send_missed_messages': {'enable': True, 'count': 50}
     },
-    -1002060896068: {
-        'target': [-1002041200636, -1002043792372],
+    -1001878810415: {
+        'target': [-1002118967843],
         'pdf_watermark': {
-            -1002041200636: base.PDF_INSANE_WATERMARK,
-            -1002043792372: base.PDF_INBLACK_WATERMARK
+            -1002118967843: base.PDF_INSANE_WATERMARK,
         },
         'emojis_for_replace': EMOJIS_REPLACEMENT,
         'text_for_remove': TEXT_FOR_REMOVE,
-        'send_missed_messages': {'enable': True, 'count': 3}
+        'send_missed_messages': {'enable': True, 'count': 50}
     },
+    -1002089326924: {
+        'target': [-1002064525407],
+        'pdf_watermark': {
+            -1002064525407: base.PDF_INSANE_WATERMARK,
+        },
+        'emojis_for_replace': EMOJIS_REPLACEMENT,
+        'text_for_remove': TEXT_FOR_REMOVE,
+        'send_missed_messages': {'enable': True, 'count': 50}
+    },
+    -1002129053757: {
+        'target': [-1001950974270],
+        'pdf_watermark': {
+            -1001950974270: base.PDF_INSANE_WATERMARK,
+        },
+        'emojis_for_replace': EMOJIS_REPLACEMENT,
+        'text_for_remove': TEXT_FOR_REMOVE,
+        'send_missed_messages': {'enable': True, 'count': 50}
+    },
+    -1002038754224: {
+        'target': [-1002140024403],
+        'pdf_watermark': {
+            -1002140024403: base.PDF_INBLACK_WATERMARK,
+        },
+        'emojis_for_replace': EMOJIS_REPLACEMENT,
+        'text_for_remove': TEXT_FOR_REMOVE,
+        'send_missed_messages': {'enable': True, 'count': 50}
+    },
+
     -1002140354840: {
         'target': [-1002101629483, -1001824470981],
         'pdf_watermark': {
             -1002101629483: base.PDF_INSANE_WATERMARK,
-            -1001824470981: base.PDF_INBLACK_WATERMARK
+            -1001824470981: base.PDF_INSANE_WATERMARK,
         },
         'emojis_for_replace': EMOJIS_REPLACEMENT,
         'text_for_remove': TEXT_FOR_REMOVE,
@@ -69,7 +96,7 @@ CHANNELS_LINKS = {
         'target': [-1002037268961, -1001990321789],
         'pdf_watermark': {
             -1002037268961: base.PDF_INSANE_WATERMARK,
-            -1001990321789: base.PDF_INBLACK_WATERMARK
+            -1001990321789: base.PDF_INSANE_WATERMARK,
         },
         'emojis_for_replace': EMOJIS_REPLACEMENT,
         'text_for_remove': TEXT_FOR_REMOVE,
@@ -79,47 +106,7 @@ CHANNELS_LINKS = {
         'target': [-1001990941015, -1002088504178],
         'pdf_watermark': {
             -1001990941015: base.PDF_INSANE_WATERMARK,
-            -1002088504178: base.PDF_INBLACK_WATERMARK
-        },
-        'emojis_for_replace': EMOJIS_REPLACEMENT,
-        'text_for_remove': TEXT_FOR_REMOVE,
-        'send_missed_messages': {'enable': True, 'count': 50}
-    },
-    -1002096262333: {
-        'target': [-1002087010315, -1001938907223],
-        'pdf_watermark': {
-            -1002087010315: base.PDF_INSANE_WATERMARK,
-            -1001938907223: base.PDF_INBLACK_WATERMARK
-        },
-        'emojis_for_replace': EMOJIS_REPLACEMENT,
-        'text_for_remove': TEXT_FOR_REMOVE,
-        'send_missed_messages': {'enable': True, 'count': 50}
-    },
-    -1001902661742: {
-        'target': [-1002035259752, -1002073101732],
-        'pdf_watermark': {
-            -1002035259752: base.PDF_INSANE_WATERMARK,
-            -1002073101732: base.PDF_INBLACK_WATERMARK
-        },
-        'emojis_for_replace': EMOJIS_REPLACEMENT,
-        'text_for_remove': TEXT_FOR_REMOVE,
-        'send_missed_messages': {'enable': True, 'count': 50}
-    },
-    -1001875008224: {
-        'target': [-1001850139609, -1002126954655],
-        'pdf_watermark': {
-            -1001850139609: base.PDF_INSANE_WATERMARK,
-            -1002126954655: base.PDF_INBLACK_WATERMARK
-        },
-        'emojis_for_replace': EMOJIS_REPLACEMENT,
-        'text_for_remove': TEXT_FOR_REMOVE,
-        'send_missed_messages': {'enable': True, 'count': 50}
-    },
-    -1002077332944: {
-        'target': [-1002122994781, -1002068405417],
-        'pdf_watermark': {
-            -1002122994781: base.PDF_INSANE_WATERMARK,
-            -1002068405417: base.PDF_INBLACK_WATERMARK
+            -1002088504178: base.PDF_INSANE_WATERMARK,
         },
         'emojis_for_replace': EMOJIS_REPLACEMENT,
         'text_for_remove': TEXT_FOR_REMOVE,
@@ -129,7 +116,7 @@ CHANNELS_LINKS = {
         'target': [-1002124570931, -1002059335740],
         'pdf_watermark': {
             -1002124570931: base.PDF_INSANE_WATERMARK,
-            -1002059335740: base.PDF_INBLACK_WATERMARK
+            -1002059335740: base.PDF_INSANE_WATERMARK,
         },
         'emojis_for_replace': EMOJIS_REPLACEMENT,
         'text_for_remove': TEXT_FOR_REMOVE,
@@ -139,7 +126,7 @@ CHANNELS_LINKS = {
         'target': [-1001990937171, -1001976975096],
         'pdf_watermark': {
             -1001990937171: base.PDF_INSANE_WATERMARK,
-            -1001976975096: base.PDF_INBLACK_WATERMARK
+            -1001976975096: base.PDF_INSANE_WATERMARK,
         },
         'emojis_for_replace': EMOJIS_REPLACEMENT,
         'text_for_remove': TEXT_FOR_REMOVE,
@@ -149,7 +136,7 @@ CHANNELS_LINKS = {
         'target': [-1002087784082, -1002050827740],
         'pdf_watermark': {
             -1002087784082: base.PDF_INSANE_WATERMARK,
-            -1002050827740: base.PDF_INBLACK_WATERMARK
+            -1002050827740: base.PDF_INSANE_WATERMARK,
         },
         'emojis_for_replace': EMOJIS_REPLACEMENT,
         'text_for_remove': TEXT_FOR_REMOVE,
@@ -159,7 +146,7 @@ CHANNELS_LINKS = {
         'target': [-1002096788234, -1002104376805],
         'pdf_watermark': {
             -1002096788234: base.PDF_INSANE_WATERMARK,
-            -1002104376805: base.PDF_INBLACK_WATERMARK
+            -1002104376805: base.PDF_INSANE_WATERMARK,
         },
         'emojis_for_replace': EMOJIS_REPLACEMENT,
         'text_for_remove': TEXT_FOR_REMOVE,
@@ -169,7 +156,27 @@ CHANNELS_LINKS = {
         'target': [-1002066865248, -1002079709374],
         'pdf_watermark': {
             -1002066865248: base.PDF_INSANE_WATERMARK,
-            -1002079709374: base.PDF_INBLACK_WATERMARK
+            -1002079709374: base.PDF_INSANE_WATERMARK,
+        },
+        'emojis_for_replace': EMOJIS_REPLACEMENT,
+        'text_for_remove': TEXT_FOR_REMOVE,
+        'send_missed_messages': {'enable': True, 'count': 50}
+    },
+    -1002096262333: {
+        'target': [-1002087010315, -1001938907223],
+        'pdf_watermark': {
+            -1002087010315: base.PDF_INSANE_WATERMARK,
+            -1001938907223: base.PDF_INSANE_WATERMARK,
+        },
+        'emojis_for_replace': EMOJIS_REPLACEMENT,
+        'text_for_remove': TEXT_FOR_REMOVE,
+        'send_missed_messages': {'enable': True, 'count': 50}
+    },
+    -1001902661742: {
+        'target': [-1002035259752, -1002073101732],
+        'pdf_watermark': {
+            -1002035259752: base.PDF_INSANE_WATERMARK,
+            -1002073101732: base.PDF_INSANE_WATERMARK,
         },
         'emojis_for_replace': EMOJIS_REPLACEMENT,
         'text_for_remove': TEXT_FOR_REMOVE,
@@ -179,47 +186,37 @@ CHANNELS_LINKS = {
         'target': [-1002087605726, -1002096106413],
         'pdf_watermark': {
             -1002087605726: base.PDF_INSANE_WATERMARK,
-            -1002096106413: base.PDF_INBLACK_WATERMARK
+            -1002096106413: base.PDF_INSANE_WATERMARK,
         },
         'emojis_for_replace': EMOJIS_REPLACEMENT,
         'text_for_remove': TEXT_FOR_REMOVE,
         'send_missed_messages': {'enable': True, 'count': 50}
     },
-    -1002021191245: {
-        'target': [-1002047029343, -1002129911279],
+    -1002057697944: {
+        'target': [-1002142705971, -1002146162020],
         'pdf_watermark': {
-            -1002047029343: base.PDF_INSANE_WATERMARK,
-            -1002129911279: base.PDF_INBLACK_WATERMARK
+            -1002142705971: base.PDF_INSANE_WATERMARK,
+            -1002146162020: base.PDF_INSANE_WATERMARK,
         },
         'emojis_for_replace': EMOJIS_REPLACEMENT,
         'text_for_remove': TEXT_FOR_REMOVE,
         'send_missed_messages': {'enable': True, 'count': 50}
     },
-    -1001907076507: {
-        'target': [-1002009738876, -1002019438834],
+    -1002135927329: {
+        'target': [-1002044088944, -1002102055007],
         'pdf_watermark': {
-            -1002009738876: base.PDF_INSANE_WATERMARK,
-            -1002019438834: base.PDF_INBLACK_WATERMARK
+            -1002044088944: base.PDF_INSANE_WATERMARK,
+            -1002102055007: base.PDF_INSANE_WATERMARK,
         },
         'emojis_for_replace': EMOJIS_REPLACEMENT,
         'text_for_remove': TEXT_FOR_REMOVE,
         'send_missed_messages': {'enable': True, 'count': 50}
     },
-    -1001906649363: {
-        'target': [-1002118304903, -1001913794737],
+    -1002077332944: {
+        'target': [-1002074471970, -1002079709374],
         'pdf_watermark': {
-            -1002118304903: base.PDF_INSANE_WATERMARK,
-            -1001913794737: base.PDF_INBLACK_WATERMARK
-        },
-        'emojis_for_replace': EMOJIS_REPLACEMENT,
-        'text_for_remove': TEXT_FOR_REMOVE,
-        'send_missed_messages': {'enable': True, 'count': 50}
-    },
-    -1001980004382: {
-        'target': [-1002145263420, -1002032966024],
-        'pdf_watermark': {
-            -1002145263420: base.PDF_INSANE_WATERMARK,
-            -1002032966024: base.PDF_INBLACK_WATERMARK
+            -1002074471970: base.PDF_INSANE_WATERMARK,
+            -1002079709374: base.PDF_INSANE_WATERMARK,
         },
         'emojis_for_replace': EMOJIS_REPLACEMENT,
         'text_for_remove': TEXT_FOR_REMOVE,

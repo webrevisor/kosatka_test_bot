@@ -29,8 +29,8 @@ class TelegramChannelSync:
             await self.client.start()
             self.logger.info("Клиент Telegram успешно запущен")
             tasks = self._set_queues()
-            await self._umskul_forward()
-            # await self._missed_messages()
+            # await self._umskul_forward()
+            await self._missed_messages()
             self._setup_handlers()
             try:
                 await self.client.run_until_disconnected()
@@ -46,7 +46,7 @@ class TelegramChannelSync:
         self.client.on(events.MessageDeleted(chats=self.source_channels))(self._delete_message_handler)
 
     async def _umskul_forward(self):
-        if self.account_name == 'second':
+        if self.account_name == 'helper_insane':
             for source, link in self.channel_links.items():
                 umskul_channels = [
                     -1001998465549,
@@ -134,10 +134,17 @@ class TelegramChannelSync:
         await queue.put(event)
 
     async def _edit_message_handler(self, event):
-        self.logger.info('В канале [{}] было изменено сообщение [{}.'.format(event.chat_id, event.message.id))
+        self.logger.info('В канале [{}] было изменено сообщение [{}].'.format(event.chat_id, event.message.id))
 
         link = self.channel_links[event.chat_id]
         for target in link['target']:
+            mapped_massage = self._get_mapped_message_dto(self.account_name, event.chat_id, event.message.id, target)
+            if not mapped_massage:
+                self.logger.info(
+                    'Сообщение [{}] для канала [{}] уже было удалено из синхронизации'.format(event.message.id, target)
+                )
+                continue
+
             event.message.message, event.message.entities = replace_emodji(
                 event.message.message,
                 link['emojis_for_replace'],
@@ -148,8 +155,6 @@ class TelegramChannelSync:
                 link['text_for_remove'],
                 event.message.entities
             )
-
-            mapped_massage = self._get_mapped_message_dto(self.account_name, event.chat_id, event.message.id, target)
 
             await self.client.edit_message(
                 target,
@@ -168,6 +173,12 @@ class TelegramChannelSync:
             link = self.channel_links[event.chat_id]
             for target in link['target']:
                 mapped_massage = self._get_mapped_message_dto(self.account_name, event.chat_id, deleted_id, target)
+                if not mapped_massage:
+                    self.logger.info(
+                        'Сообщение [{}] для канала [{}] уже было удалено из синхронизации'.format(deleted_id, target)
+                    )
+                    continue
+
                 await self.client.delete_messages(target, [mapped_massage.target_message_id])
                 database.delete_mapped_message(
                     self.account_name,
@@ -288,5 +299,8 @@ class TelegramChannelSync:
             source_message_id,
             target_channel_id
         )
+
+        if not mapped_massage_response:
+            return None
 
         return MappedMessageDTO(mapped_massage_response)
