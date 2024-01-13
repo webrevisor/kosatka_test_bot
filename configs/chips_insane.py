@@ -3,8 +3,8 @@ from configs import base
 # Аккаунт
 ACCOUNT_NAME = "chips_insane"
 ACCOUNT_SESSION = "chips_insane_session"
-API_ID = 28974917
-API_HASH = 'a003b936fe8a05e702ffefc2c46f8aa0'
+API_ID = 
+API_HASH = ''
 
 # Настройка поста
 TEXT_FOR_REMOVE = [
